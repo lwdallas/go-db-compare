@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/denisenkom/go-mssqldb"
+	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 	"github.com/gocql/gocql"
 	"log"
 	"os"
@@ -14,7 +17,6 @@ import (
 	// TODO test with psql
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/gocql/gocql"
 )
 
 var configvar string // config filename
@@ -98,9 +100,13 @@ func main() {
 
 	// 0. read config
 
+	var err error
+
 	// 1. open source db
+	var dbFirst *sql.DB
+	var firstCluster *gocql.ClusterConfig
 	if sdbc.DatabaseType != "gocql" {
-		dbFirst, err := sql.Open(sdbc.DatabaseType, sdbc.ConnectionString)
+		dbFirst, err = sql.Open(sdbc.DatabaseType, sdbc.ConnectionString)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -108,25 +114,36 @@ func main() {
 	}else{
 		firstCluster := gocql.NewCluster(viper.GetString("sourceCluster"))
 		firstCluster.Keyspace = viper.GetString("sourceKeyspace")
-		firstCluster.Consistency = firstCluster.Quorum
 		firstSession, _ := firstCluster.CreateSession()
 		defer firstSession.Close()
 	}
 
+	if firstCluster != nil {
+		log.Fatal("first cluster setup")
+	}
+
 	// 2. open target db
 
+	var dbSecond *sql.DB
+	var secondCluster *gocql.ClusterConfig
 	if sdbc.DatabaseType != "gocql" {
-	dbSecond, err := sql.Open(tdbc.DatabaseType, tdbc.ConnectionString)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer dbSecond.Close()
+		dbSecond, err = sql.Open(tdbc.DatabaseType, tdbc.ConnectionString)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer dbSecond.Close()
 	}else{
 		secondCluster := gocql.NewCluster(viper.GetString("targetCluster"))
 		secondCluster.Keyspace = viper.GetString("targetKeyspace")
-		secondCluster.Consistency = secondCluster.Quorum
 		secondSession, _ := secondCluster.CreateSession()
+		if secondCluster == nil {
+			log.Fatal("error in first cluster setup")
+		}
 		defer secondSession.Close()
+	}
+
+	if secondCluster != nil {
+		log.Fatal("second cluster setup")
 	}
 
 	// 3. Execute the source  query
@@ -208,7 +225,6 @@ func GetColumnsFromARow(rows *sql.Rows, rawResult [][]byte, result []string, des
 	}
 
 	return nil, result
-
 }
 
 func GetColumnsByID(db *sql.DB, ids []string) (error, []string) {

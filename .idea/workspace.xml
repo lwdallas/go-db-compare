@@ -6,8 +6,6 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/GOPATH__go_db_compare_.xml" afterPath="$PROJECT_DIR$/.idea/libraries/GOPATH__go_db_compare_.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.go" afterPath="$PROJECT_DIR$/main.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test-data/config-basic-test-csql.json" afterPath="$PROJECT_DIR$/test-data/config-basic-test-csql.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test-data/config-basic-test.json" afterPath="$PROJECT_DIR$/test-data/config-basic-test.json" />
     </list>
     <ignored path="go-db-compare.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,23 +30,23 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="config-basic-test.json" pinned="false" current-in-tab="true">
+      <file leaf-file-name="config-basic-test.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test-data/config-basic-test.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.36824876">
+            <state vertical-scroll-proportion="-9.375">
               <caret line="18" column="155" selection-start-line="18" selection-start-column="155" selection-end-line="18" selection-end-column="155" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.go" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="132" column="31" selection-start-line="132" selection-start-column="31" selection-end-line="132" selection-end-column="31" />
+            <state vertical-scroll-proportion="-3.9133859">
+              <caret line="126" column="24" selection-start-line="126" selection-start-column="24" selection-end-line="126" selection-end-column="24" />
               <folding>
-                <element signature="e#14#310#0" expanded="true" />
+                <element signature="e#14#378#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -97,9 +95,9 @@
         <option value="$PROJECT_DIR$/try.go" />
         <option value="$PROJECT_DIR$/LICENSE.txt" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/main.go" />
         <option value="$PROJECT_DIR$/test-data/config-basic-test-csql.json" />
         <option value="$PROJECT_DIR$/test-data/config-basic-test.json" />
+        <option value="$PROJECT_DIR$/main.go" />
       </list>
     </option>
   </component>
@@ -574,6 +572,7 @@
       <updated>1458530759162</updated>
     </task>
     <option name="localTasksCounter" value="4" />
+    <option name="commitChanges" value="false" />
     <servers />
   </component>
   <component name="TodoView">
@@ -657,16 +656,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="132" column="31" selection-start-line="132" selection-start-column="31" selection-end-line="132" selection-end-column="31" />
-          <folding>
-            <element signature="e#14#310#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test-data/config-basic-test-csql.json">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-13.823529">
@@ -677,9 +666,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test-data/config-basic-test.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.36824876">
+        <state vertical-scroll-proportion="-9.375">
           <caret line="18" column="155" selection-start-line="18" selection-start-column="155" selection-end-line="18" selection-end-column="155" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.9133859">
+          <caret line="126" column="24" selection-start-line="126" selection-start-column="24" selection-end-line="126" selection-end-column="24" />
+          <folding>
+            <element signature="e#14#378#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
