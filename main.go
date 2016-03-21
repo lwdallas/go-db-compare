@@ -19,6 +19,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// TODO add windowing of some sort in the source query
+
 var configvar string // config filename
 
 type databaseConfig struct {
