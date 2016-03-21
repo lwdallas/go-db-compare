@@ -10,6 +10,7 @@
     <excluded>
       <root url="file://$PROJECT_DIR$/../src/github.com/hashicorp/hcl/hcl/printer/testdata" />
       <root url="file://$PROJECT_DIR$/../src/github.com/spf13/cast/.git" />
+      <root url="file://$PROJECT_DIR$/../src/github.com/gocql/gocql/testdata" />
       <root url="file://$PROJECT_DIR$/../src/github.com/mgutz/ansi/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/hashicorp/hcl/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/go-libs/growl/.git" />
@@ -23,10 +24,13 @@
       <root url="file://$PROJECT_DIR$/../src/github.com/BurntSushi/toml/.git" />
       <root url="file://$PROJECT_DIR$/../src/golang.org/x/net/http2/testdata" />
       <root url="file://$PROJECT_DIR$" />
+      <root url="file://$PROJECT_DIR$/../src/github.com/golang/snappy/testdata" />
+      <root url="file://$PROJECT_DIR$/../src/github.com/golang/snappy/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/kr/pretty/.git" />
       <root url="file://$PROJECT_DIR$/../src/gopkg.in/yaml.v2/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/DATA-DOG/go-sqlmock/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/spf13/pflag/.git" />
+      <root url="file://$PROJECT_DIR$/../src/gopkg.in/inf.v0/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/magiconair/properties/_third_party" />
       <root url="file://$PROJECT_DIR$/../src/github.com/magiconair/properties/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/mattn/go-colorable/.git" />
@@ -35,8 +39,10 @@
       <root url="file://$PROJECT_DIR$/../src/golang.org/x/net/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/mattn/go-runewidth/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/go-sql-driver/mysql/.git" />
+      <root url="file://$PROJECT_DIR$/../src/github.com/hailocab/go-hostpool/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/spf13/viper/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/mitchellh/mapstructure/.git" />
+      <root url="file://$PROJECT_DIR$/../src/github.com/gocql/gocql/.git" />
       <root url="file://$PROJECT_DIR$/../src/gopkg.in/fsnotify.v1/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/maruel/panicparse/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/spf13/jwalterweatherman/.git" />
