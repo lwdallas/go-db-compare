@@ -134,9 +134,16 @@ func main() {
 		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
 	}
 
+	rowsCompared := 0
+
 	for rows.Next() {
-		// TODO count rows
+		// inc count rows
+		rowsCompared++
+
 		//  clear result
+		for k,_ := range result{
+			result[k]=""
+		}
 
 		// get the columns
 		err, firstResult := GetColumnsFromARow(rows, rawResult, result, dest)
@@ -156,7 +163,7 @@ func main() {
 		for i := 0; i < len(firstResult); i++ {
 			if firstResult[i] != secondResult[i] {
 				// output results
-				log.Println("<<current row>>:", "field ", i, ":", firstResult[i], "!=", secondResult[i])
+				log.Println("current row:", rowsCompared, "field ", i, ":", firstResult[i], "!=", secondResult[i])
 			}
 		}
 	}
