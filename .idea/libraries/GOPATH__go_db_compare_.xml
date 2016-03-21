@@ -17,6 +17,7 @@
       <root url="file://$PROJECT_DIR$/../src/github.com/maruel/panicparse/Godeps/_workspace" />
       <root url="file://$PROJECT_DIR$/../src/github.com/go-fsnotify/fsevents/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/BurntSushi/toml/_examples" />
+      <root url="file://$PROJECT_DIR$/../src/github.com/tux21b/gocql/.git" />
       <root url="file://$PROJECT_DIR$/../src/golang.org/x/net/html/charset/testdata" />
       <root url="file://$PROJECT_DIR$/../src/github.com/kr/text/.git" />
       <root url="file://$PROJECT_DIR$/../src/gopkg.in/DATA-DOG/go-sqlmock.v1/.git" />
@@ -29,6 +30,7 @@
       <root url="file://$PROJECT_DIR$/../src/github.com/kr/pretty/.git" />
       <root url="file://$PROJECT_DIR$/../src/gopkg.in/yaml.v2/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/DATA-DOG/go-sqlmock/.git" />
+      <root url="file://$PROJECT_DIR$/../src/github.com/tux21b/gocqldriver/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/spf13/pflag/.git" />
       <root url="file://$PROJECT_DIR$/../src/gopkg.in/inf.v0/.git" />
       <root url="file://$PROJECT_DIR$/../src/github.com/magiconair/properties/_third_party" />

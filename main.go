@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gocql/gocql"
 	"log"
 	"os"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	// TODO test with psql
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/gocql/gocql"
 )
 
 var configvar string // config filename
@@ -97,19 +99,35 @@ func main() {
 	// 0. read config
 
 	// 1. open source db
-	dbFirst, err := sql.Open(sdbc.DatabaseType, sdbc.ConnectionString)
-	if err != nil {
-		panic(err.Error())
+	if sdbc.DatabaseType != "gocql" {
+		dbFirst, err := sql.Open(sdbc.DatabaseType, sdbc.ConnectionString)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer dbFirst.Close()
+	}else{
+		firstCluster := gocql.NewCluster(viper.GetString("sourceCluster"))
+		firstCluster.Keyspace = viper.GetString("sourceKeyspace")
+		firstCluster.Consistency = firstCluster.Quorum
+		firstSession, _ := firstCluster.CreateSession()
+		defer firstSession.Close()
 	}
-	defer dbFirst.Close()
 
 	// 2. open target db
 
+	if sdbc.DatabaseType != "gocql" {
 	dbSecond, err := sql.Open(tdbc.DatabaseType, tdbc.ConnectionString)
 	if err != nil {
 		panic(err.Error())
 	}
 	defer dbSecond.Close()
+	}else{
+		secondCluster := gocql.NewCluster(viper.GetString("targetCluster"))
+		secondCluster.Keyspace = viper.GetString("targetKeyspace")
+		secondCluster.Consistency = secondCluster.Quorum
+		secondSession, _ := secondCluster.CreateSession()
+		defer secondSession.Close()
+	}
 
 	// 3. Execute the source  query
 	rows, err := dbFirst.Query(sourceSql)

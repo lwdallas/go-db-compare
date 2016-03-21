@@ -2,21 +2,25 @@
 	"configName": "basic test cql",
 	"description": "This tests the basic row-for row comparison of two cql tables that are almost identical",
 	"sourceDatabase": {
-		"connectionString": "@tcp(127.0.0.1:9042)/testgdbc",
-		"connectionStringExplanation": "user:password@tcp(host:portnumber)/database",
-		"databaseType": "cql",
-		"databaseTypeExplanation": "mysql, mssql, cql, etc"
+		"connectionString": "",
+		"connectionStringExplanation": "this isn't used for Cassandra",
+		"databaseType": "gocql",
+		"databaseTypeExplanation": "mysql, mssql, gocql, etc"
 	},
 	"targetDatabase": {
-		"connectionString": "@tcp(127.0.0.1:9042)/testgdbc",
-		"connectionStringExplanation": "user:password@tcp(host:portnumber)/database",
+		"connectionString": "",
+		"connectionStringExplanation": "this isn't used for Cassandra",
 		"databaseType": "cql",
-		"databaseTypeExplanation": "mysql, mssql, cql, etc"
+		"databaseTypeExplanation": "mysql, mssql, gocql, etc"
 	},
 	"sourceTable": "first",
+	"sourceCluster":"127.0.0.1:9042",
+	"sourceKeyspace":"testgdbc",
 	"targetTable": "second",
+	"targetCluster":"127.0.0.1:9042",
+	"targetKeyspace":"testgdbc",
 	"sourceSql": "SELECT id, first_name, middle_name, last_name, age, birthdate, description, more_info, addr, city FROM first",
-	"targetSql": "SELECT id, first_name, middle_name, last_name, age, birthdate, description, more_info, addr, city FROM second WHERE id={field:id}",
+	"targetSql": "SELECT id, first_name, middle_name, last_name, age, birthdate, description, more_info, addr, city FROM second WHERE id={field:id} LIMIT 1",
 	"fieldMapping": {
 		"ignoreFieldCase": true,
 		"fields": [{
