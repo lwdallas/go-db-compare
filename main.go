@@ -106,6 +106,11 @@ func main() {
 	fmt.Println("Starting...")
 
 	var err error
+	var differencesCount int
+	var rowDifferencesCount int
+
+	differencesCount = 0
+	rowDifferencesCount  = 0
 
 	// 1. open source db
 	var dbFirst *sql.DB
@@ -200,12 +205,19 @@ func main() {
 			}
 
 			// compare the result sets
+			aDifference := false
 
 			for i := 0; i < len(firstResult); i++ {
 				if firstResult[i] != secondResult[i] {
 					// output results
-					log.Println("current row:", rowsCompared, "field ", i, ":", firstResult[i], "!=", secondResult[i])
+					fmt.Println("current row:", rowsCompared, "field ", i, ":", firstResult[i], "!=", secondResult[i])
+					differencesCount++
+					aDifference = true
 				}
+			}
+
+			if aDifference {
+				rowDifferencesCount++
 			}
 		}
 		err = rows.Err()
@@ -249,11 +261,18 @@ func main() {
 
 			// compare the result sets
 
+			aDifference := false
 			for i := 0; i < len(firstResult)-1; i++ {
 				if firstResult[i] != secondResult[i] {
 					// output results
 					fmt.Println("current row:", j, "field ", i, ":", firstResult[i], "!=", secondResult[i])
+					aDifference = true
+					differencesCount++
 				}
+			}
+
+			if aDifference {
+				rowDifferencesCount++
 			}
 		}
 
@@ -264,6 +283,11 @@ func main() {
 	}
 
 	fmt.Println("Done.")
+	fmt.Println("")
+	fmt.Println("Results:")
+
+	fmt.Println(differencesCount," differences found.")
+	fmt.Println(rowDifferencesCount," rows had difference.")
 }
 
 func GetColumnsFromARow(rows *sql.Rows, rawResult [][]byte, result []string, dest []interface{}) (error, []string) {
