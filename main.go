@@ -12,7 +12,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	// TODO test with csql
 	// TODO test with sqlite
 	// TODO test with mssql
 	// TODO test with psql
