@@ -4,16 +4,22 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/denisenkom/go-mssqldb"
+	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
+	"github.com/gocql/gocql"
 	"log"
 	"os"
+	"strconv"
 	"strings"
-	// TODO test with csql
 	// TODO test with sqlite
 	// TODO test with mssql
 	// TODO test with psql
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+// TODO add windowing of some sort in the source query
 
 var configvar string // config filename
 
@@ -44,6 +50,8 @@ var tdbc databaseConfig // target DB config
 var sourceSql string
 var targetSql string
 var fmc fieldMappingsConfig
+var firstSession *gocql.Session
+var secondSession *gocql.Session
 
 func init() {
 	pflag.StringVar(&configvar, "config", "config.json", "configuration file name")
@@ -86,8 +94,8 @@ func init() {
 	fmt.Println("target table:", viper.GetString("targetTable"))
 	fmt.Println("source SQL:", viper.GetString("sourceSql"))
 	fmt.Println("target SQL:", viper.GetString("targetSql"))
-	fmt.Println("source Keys:", fmc.SourceKeys[0])
-	fmt.Println("target Keys:", fmc.TargetKeys[0])
+	fmt.Println("source Keys:", fmc.SourceKeys)
+	fmt.Println("target Keys:", fmc.TargetKeys)
 	fmt.Println("ignore field case:", fmc.IgnoreFieldCase)
 
 }
@@ -95,136 +103,196 @@ func init() {
 func main() {
 
 	// 0. read config
+	fmt.Println("Starting...")
+
+	var err error
+	var differencesCount int
+	var rowDifferencesCount int
+
+	differencesCount = 0
+	rowDifferencesCount  = 0
 
 	// 1. open source db
-	dbFirst, err := sql.Open(sdbc.DatabaseType, sdbc.ConnectionString)
-	if err != nil {
-		panic(err.Error())
+	var dbFirst *sql.DB
+	var firstCluster *gocql.ClusterConfig
+	if sdbc.DatabaseType != "gocql" {
+		dbFirst, err = sql.Open(sdbc.DatabaseType, sdbc.ConnectionString)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer dbFirst.Close()
+	}else {
+		firstCluster := gocql.NewCluster(viper.GetString("sourceCluster"))
+		firstCluster.Keyspace = viper.GetString("sourceKeyspace")
+		firstSession, _ = firstCluster.CreateSession()
+		defer firstSession.Close()
 	}
-	defer dbFirst.Close()
+
+	if firstCluster != nil {
+		log.Fatal("first cluster setup")
+	}
 
 	// 2. open target db
 
-	dbSecond, err := sql.Open(tdbc.DatabaseType, tdbc.ConnectionString)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer dbSecond.Close()
-
-	// 3. Execute the source  query
-	rows, err := dbFirst.Query(sourceSql)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer rows.Close()
-
-	// 4. get the columns for all source records
-	cols, err := rows.Columns()
-	if err != nil {
-		log.Println("Failed to get columns", err)
-		return
-	}
-
-	// Result is your slice string.
-	rawResult := make([][]byte, len(cols))
-	result := make([]string, len(cols))
-
-	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
-	for i, _ := range rawResult {
-		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
-	}
-
-	rowsCompared := 0
-
-	for rows.Next() {
-		// inc count rows
-		rowsCompared++
-
-		//  clear result
-		for k,_ := range result{
-			result[k]=""
-		}
-
-		// get the columns
-		err, firstResult := GetColumnsFromARow(rows, rawResult, result, dest)
+	var dbSecond *sql.DB
+	var secondCluster *gocql.ClusterConfig
+	if tdbc.DatabaseType != "gocql" {
+		dbSecond, err = sql.Open(tdbc.DatabaseType, tdbc.ConnectionString)
 		if err != nil {
-			log.Println("Could not get the Source columns")
-			log.Fatal(err)
+			panic(err.Error())
 		}
+		defer dbSecond.Close()
+	}else {
+		secondCluster := gocql.NewCluster(viper.GetString("targetCluster"))
+		secondCluster.Keyspace = viper.GetString("targetKeyspace")
+		secondSession, _ = secondCluster.CreateSession()
+		if secondCluster == nil {
+			log.Fatal("error in first cluster setup")
+		}
+		defer secondSession.Close()
+	}
 
-		err, secondResult := GetColumnsByID(dbSecond, GetIDsFromResult(firstResult, fmc.SourceKeys))
+	if secondCluster != nil {
+		log.Fatal("second cluster setup")
+	}
+
+	if sdbc.DatabaseType != "gocql" {
+		// 3. Execute the source  query
+		rows, err := dbFirst.Query(sourceSql)
 		if err != nil {
-			log.Println("Could not get the Target columns")
-			log.Fatal(err)
+			panic(err.Error())
+		}
+		defer rows.Close()
+
+		// 4. get the columns for all source records
+		cols, err := rows.Columns()
+		if err != nil {
+			log.Println("Failed to get columns", err)
+			return
 		}
 
-		// compare the result sets
+		// Result is your slice string.
+		rawResult := make([][]byte, len(cols))
+		result := make([]string, len(cols))
 
-		for i := 0; i < len(firstResult); i++ {
-			if firstResult[i] != secondResult[i] {
-				// output results
-				log.Println("current row:", rowsCompared, "field ", i, ":", firstResult[i], "!=", secondResult[i])
+		dest := make([]interface{}, len(cols)) // A temporary interface{} slice
+		for i, _ := range rawResult {
+			dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
+		}
+
+		rowsCompared := 0
+
+		for rows.Next() {
+			// inc count rows
+			rowsCompared++
+
+			//  clear result
+			for k,_ := range result{
+				result[k]=""
+			}
+
+			// get the columns
+			err, firstResult := GetColumnsFromARow(rows, rawResult, result, dest)
+			if err != nil {
+				log.Println("Could not get the Source columns")
+				log.Fatal(err)
+			}
+
+			err, secondResult := GetColumnsByID(dbSecond, GetIDsFromResult(firstResult, fmc.SourceKeys))
+			if err != nil {
+				log.Println("Could not get the Target columns")
+				log.Fatal(err)
+			}
+
+			// compare the result sets
+			aDifference := false
+
+			for i := 0; i < len(firstResult); i++ {
+				if firstResult[i] != secondResult[i] {
+					// output results
+					fmt.Println("current row:", rowsCompared, "field ", i, ":", firstResult[i], "!=", secondResult[i])
+					differencesCount++
+					aDifference = true
+				}
+			}
+
+			if aDifference {
+				rowDifferencesCount++
 			}
 		}
+		err = rows.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	} else {
+		// cassandra version
+		iter := firstSession.Query(sourceSql).Iter()
+
+		// get columns
+		cols := iter.Columns()
+		fmt.Println("Columns()",cols)
+
+		// get rows
+		rows,err := iter.RowData()
+		if err != nil {
+			log.Fatal("RowData() did not work:", err )
+		}
+
+		dest, err := iter.SliceMap()
+		firstResult := make ([]string, len(dest[0])+1)
+		for j := 0; j<len(dest); j++ {
+			for k, i := range rows.Columns {
+				fmt.Print(k, i)
+				if gocql.TypeInt == cols[k].TypeInfo.Type() {
+						firstResult[k] = strconv.Itoa(dest[j][i].(int))
+				} else if dest[j][i] == nil {
+					firstResult[k] = "\\N"
+				} else {
+					firstResult[k] = dest[j][i].(string)
+				}
+			}
+
+			err, secondResult := GetColumnsByID(dbSecond, GetIDsFromResultGoCql(firstResult, fmc.SourceKeys, rows))
+			if err != nil {
+				log.Println("Could not get the Target columns on row ", j)
+				log.Fatal(err)
+			}
+
+			// compare the result sets
+
+			aDifference := false
+			for i := 0; i < len(firstResult)-1; i++ {
+				if firstResult[i] != secondResult[i] {
+					// output results
+					fmt.Println("current row:", j, "field ", i, ":", firstResult[i], "!=", secondResult[i])
+					aDifference = true
+					differencesCount++
+				}
+			}
+
+			if aDifference {
+				rowDifferencesCount++
+			}
+		}
+
+		if err := iter.Close(); err != nil {
+			log.Fatal(err)
+		}
+
 	}
-	err = rows.Err()
-	if err != nil {
-		log.Fatal(err)
-	}
+
+	fmt.Println("Done.")
+	fmt.Println("")
+	fmt.Println("Results:")
+
+	fmt.Println(differencesCount," differences found.")
+	fmt.Println(rowDifferencesCount," rows had difference.")
 }
 
 func GetColumnsFromARow(rows *sql.Rows, rawResult [][]byte, result []string, dest []interface{}) (error, []string) {
-	// range thru all rows
-	err := rows.Scan(dest...)
-	if err != nil {
-		log.Println("Failed to scan row", err)
-		return err, result
-	}
-
-	for i, raw := range rawResult {
-		if raw == nil {
-			result[i] = "\\N"
-		} else {
-			result[i] = string(raw)
-		}
-	}
-
-	return nil, result
-
-}
-
-func GetColumnsByID(db *sql.DB, ids []string) (error, []string) {
-	aSql := targetSql
-	// modify the query by replacing field tokens
-	for k, v := range ids {
-		aSql = ReplaceToken(aSql, fmc.SourceKeys[k], v)
-	}
-
-	// Execute the query
-	rows, err := db.Query(aSql)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer rows.Close()
-
-	cols, err := rows.Columns()
-	if err != nil {
-		log.Println("Failed to get columns", err)
-		return err, nil
-	}
-
-	// Result is your slice string.
-	rawResult := make([][]byte, len(cols))
-	result := make([]string, len(cols))
-
-	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
-	for i, _ := range rawResult {
-		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
-	}
-
-	// range thru all rows
-	for rows.Next() {
-		err = rows.Scan(dest...)
+	if tdbc.DatabaseType != "gocql" {
+		err := rows.Scan(dest...)
 		if err != nil {
 			log.Println("Failed to scan row", err)
 			return err, result
@@ -237,28 +305,132 @@ func GetColumnsByID(db *sql.DB, ids []string) (error, []string) {
 				result[i] = string(raw)
 			}
 		}
+	} else {
+		// cassandra version
+		iter := secondSession.Query(targetSql).Iter()
 
-		fmt.Printf("%#v\n", result)
+		// get rows
+		rows,err := iter.RowData()
+		if err != nil {
+			log.Fatal("RowData() did not work:", err )
+		}
+
+		dest, err := iter.SliceMap()
+		for j := 0; j<len(dest); j++{ // there really should only be one row
+			for _, i := range rows.Columns {
+				result[j] = dest[j][i].(string)
+			}
+		}
+
+		if err := iter.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return nil, result
+}
+
+func GetColumnsByID(db *sql.DB, ids []string) (error, []string) {
+	aSql := targetSql
+	// modify the query by replacing field tokens
+	for k, v := range ids {
+		aSql = ReplaceToken(aSql, fmc.SourceKeys[k], v)
 	}
 
-	//	var (
-	//		a_id, age int
-	//		first_name, middle_name, last_name, birthdate, description, more_info, addr, city sql.NullString
-	//	)
-	//	for rows.Next() {
-	//		err := rows.Scan(&a_id, &first_name, &middle_name, &last_name, &age, &birthdate, &description, &more_info, &addr, &city)
-	//		if err != nil {
-	//			log.Fatal(err)
-	//		}
-	//		return middle_name
-	//	}
+	result := make([]string, 0)
+	if tdbc.DatabaseType != "gocql" {
+		// Execute the query
+		rows, err := db.Query(aSql)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer rows.Close()
+
+		cols, err := rows.Columns()
+		if err != nil {
+			log.Println("Failed to get columns", err)
+			return err, nil
+		}
+
+		// Result is your slice string.
+		rawResult := make([][]byte, len(cols))
+		result = make([]string, len(cols))
+
+		dest := make([]interface{}, len(cols)) // A temporary interface{} slice
+		for i, _ := range rawResult {
+			dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
+		}
+
+		// range thru all rows
+		for rows.Next() {
+			err = rows.Scan(dest...)
+			if err != nil {
+				log.Println("Failed to scan row", err)
+				return err, result
+			}
+
+			for i, raw := range rawResult {
+				if raw == nil {
+					result[i] = "\\N"
+				} else {
+					result[i] = string(raw)
+				}
+			}
+
+			fmt.Printf("%#v\n", result)
+		}
+
+	} else {
+		fmt.Println(aSql)
+		// cassandra version
+	 	iter := secondSession.Query(aSql).Iter()
+
+		// get columns
+		cols := iter.Columns()
+
+		// get rows
+		rows,err := iter.RowData()
+		if err != nil {
+			log.Fatal("RowData() did not work:", err )
+		}
+
+		result = make([]string, len(cols))
+ 		dest, err := iter.SliceMap()
+		for j := 0; j<len(dest); j++{ // there really should only be one row
+			for k, i := range rows.Columns {
+				if gocql.TypeInt == cols[k].TypeInfo.Type() {
+					result[k] = strconv.Itoa(dest[j][i].(int))
+				} else if dest[j][i] == nil {
+					result[k] = "\\N"
+				}else{
+					result[k] = dest[j][i].(string)
+				}
+			}
+		}
+
+		if err := iter.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}
 	return nil, result
 }
 
 func GetIDsFromResult(resultSet, keys []string) []string {
 	returnIds := make([]string, len(keys))
 	for k, v := range keys {
+		fmt.Println(k,v)
 		returnIds[k] = resultSet[GetCoumnPositionFromSourceName(v)]
+	}
+	return returnIds
+}
+
+func GetIDsFromResultGoCql(resultSet, keys []string, rows gocql.RowData) []string {
+	returnIds := make([]string, len(keys))
+	for k, v := range keys {
+		for i, n := range rows.Columns {
+			if v==n {
+				returnIds[k] = resultSet[i]
+			}
+		}
 	}
 	return returnIds
 }
