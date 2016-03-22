@@ -10,7 +10,7 @@
 	"targetDatabase": {
 		"connectionString": "",
 		"connectionStringExplanation": "this isn't used for Cassandra",
-		"databaseType": "cql",
+		"databaseType": "gocql",
 		"databaseTypeExplanation": "mysql, mssql, gocql, etc"
 	},
 	"sourceTable": "first",
