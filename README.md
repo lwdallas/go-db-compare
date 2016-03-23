@@ -1,31 +1,34 @@
 # go-db-compare
-Go Database Compare
+**Go Database Compare**  
+A program that compares data row-by-row between two tables.  Tables can be in different databases, including Cassandra.
 
+The program requires a definition of the databases(source and target)as well as field mappings. The keys and SELECT  statements have to be defined to allow for data to be located. It might be necessary to handle NULLs in the SELECT. Note the LIMIT in the target SELECT.
 
-Installation
+**Prerequisite Installation**
 
 `go get github.com/gocql/gocql`
 `go get github.com/go-sql-driver/mysql`
 `go get github.com/spf13/pflag`  
 `go get github.com/spf13/viper`  
 
-Execution
+**Execution**
 
 `go run main.go --config=configuration-file.json`
 
-Sample Config File
+**Minimum Sample Config File**  
+This is an example mysql-to-mysql database compare.  
 
 	{
 		"configName": "basic test",
 		"description": "This tests the basic row-for row comparison of two mysql tables that are almost identical",
 		"sourceDatabase": {
-			"connectionString": "root:Password@tcp(127.0.0.1:8889)/testgdbc",
+			"connectionString": "root:Password@tcp(127.0.0.1:3306)/testgdbc",
 			"connectionStringExplanation": "user:password@tcp(host:portnumber)/database",
 			"databaseType": "mysql",
 			"databaseTypeExplanation": "mysql, mssql, cql, etc"
 		},
 		"targetDatabase": {
-			"connectionString": "root:Password@tcp(127.0.0.1:8889)/testgdbc",
+			"connectionString": "root:Password@tcp(127.0.0.1:3306)/testgdbc",
 			"connectionStringExplanation": "user:password@tcp(host:portnumber)/database",
 			"databaseType": "mysql",
 			"databaseTypeExplanation": "mysql, mssql, cql, etc"
@@ -38,84 +41,34 @@ Sample Config File
 			"ignoreFieldCase": true,
 			"fields": [{
 				"sourceName": "id",
-				"targetName": "id",
-				"sourceType": "int",
-				"targetType": "int",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "id"
 			}, {
 				"sourceName": "first_name",
-				"targetName": "first_name",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "first_name"
 			}, {
 				"sourceName": "middle_name",
-				"targetName": "middle_name",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "middle_name"
 			}, {
 				"sourceName": "last_name",
-				"targetName": "last_name",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "last_name"
 			}, {
 				"sourceName": "age",
-				"targetName": "age",
-				"sourceType": "int",
-				"targetType": "int",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "age"
 			}, {
 				"sourceName": "birthdate",
-				"targetName": "birthdate",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "birthdate"
 			}, {
 				"sourceName": "description",
-				"targetName": "description",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "description"
 			}, {
 				"sourceName": "more_info",
-				"targetName": "more_info",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "more_info"
 			}, {
 				"sourceName": "addr",
-				"targetName": "addr",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "addr"
 			}, {
 				"sourceName": "city",
-				"targetName": "city",
-				"sourceType": "varchar",
-				"targetType": "varchar",
-				"ignore": false,
-				"ignoreType": true,
-				"ignoreCase": true
+				"targetName": "city"
 			}],
 			"sourceKeys": [
 				"id"
@@ -127,3 +80,20 @@ Sample Config File
 	}
 
 
+**Tested Scenarios** (so far)  
+See the test-data directory for sample data and configurations to testing the following scenarios.  
+
+* mysql-mysql  
+* gocql-gocql  
+* mysql-gocql  
+ 
+**Roadmap**  
+Things I need to deal with.  
+
+* I really need to clean up this code base. I just got it  working and checked it in. Reality: This code stinks!
+* Add paging to first query to handle potentially large data sets
+* Add the ability to compare actual source types with conversion with mapping attribute "sourceType": "varchar"
+* Add the ability to compare actual target types with conversion with mapping attribute "targetType": "varchar"
+* Add the ability to ignore a field with mapping attribute "ignore": false
+* Add the ability to ignore a field's type difference with mapping attribute "ignoreType": true
+* Add the ability to ignore a field's case with mapping attribute "ignoreCase": true
