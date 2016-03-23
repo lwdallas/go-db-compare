@@ -6,8 +6,8 @@ The program requires a definition of the databases(source and target)as well as 
 
 **Prerequisite Installation**
 
-`go get github.com/gocql/gocql`
-`go get github.com/go-sql-driver/mysql`
+`go get github.com/gocql/gocql`  
+`go get github.com/go-sql-driver/mysql`  
 `go get github.com/spf13/pflag`  
 `go get github.com/spf13/viper`  
 
